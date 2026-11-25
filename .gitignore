@@ -1,0 +1,13 @@
+## .NET Build Artifacts
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+TestResults/
+build/win-x64-self-contained/
+build/HWIDDiagnosticPro-Portable-win-x64/
+build/*.zip
+build/installer/

@@ -1,0 +1,1132 @@
+<Window x:Class="HWIDDiagnosticPro.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="HWID Diagnostic Pro — Diagnóstico Técnico Avançado para Windows 10 e 11"
+        Width="1360"
+        Height="820"
+        MinWidth="1280"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{StaticResource PrimaryBackgroundBrush}"
+        Foreground="{StaticResource TextPrimaryBrush}"
+        FontFamily="Segoe UI">
+
+    <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="34" />
+            </Grid.RowDefinitions>
+
+            <!-- 1. BARRA DE TÍTULO CUSTOMIZADA COM MINIMIZAR, MAXIMIZAR E FECHAR -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource SecondaryBackgroundBrush}"
+                    BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="16,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="28" Height="28" CornerRadius="7" Background="{StaticResource PrimaryBlueBrush}" Margin="0,0,10,0">
+                            <Path Data="{StaticResource IconShieldGeometry}" Fill="White" Stretch="Uniform" Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="HWID DIAGNOSTIC PRO" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" Foreground="White" />
+                        <Border Background="#1E3A8A" CornerRadius="5" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="v1.0 • Diagnóstico Somente Leitura" FontSize="11" Foreground="#93C5FD" FontWeight="SemiBold" />
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding NotificationMessage}"
+                               Foreground="#60A5FA"
+                               FontSize="12"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="20,0" />
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource WindowControlButtonStyle}" Click="MinimizeButton_Click" ToolTip="Minimizar">
+                            <TextBlock Text="—" FontSize="12" FontWeight="Bold" />
+                        </Button>
+                        <Button Style="{StaticResource WindowControlButtonStyle}" Click="MaximizeRestoreButton_Click" ToolTip="Maximizar / Restaurar">
+                            <TextBlock Text="☐" FontSize="13" />
+                        </Button>
+                        <Button Style="{StaticResource WindowControlButtonStyle}" Click="CloseButton_Click" ToolTip="Fechar">
+                            <TextBlock Text="✕" FontSize="13" Foreground="#F87171" FontWeight="Bold" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 2. BARRA DE PROGRESSO REAL E OPÇÃO DE CANCELAR VERIFICAÇÕES -->
+            <Border Grid.Row="1"
+                    Background="#141D2E"
+                    BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="18,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="260" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding ProgressStatusText}"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontSize="12.5"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <ProgressBar Grid.Column="1"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding ProgressPercentage, Mode=OneWay}"
+                                 Height="10"
+                                 Margin="16,0"
+                                 Background="#0B0F19"
+                                 Foreground="{StaticResource PrimaryBlueBrush}"
+                                 BorderThickness="0"
+                                 VerticalAlignment="Center" />
+
+                    <Button Grid.Column="2"
+                            Content="Cancelar verificação"
+                            Command="{Binding CancelDiagnosticCommand}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}"
+                            Style="{StaticResource SecondaryActionButtonStyle}"
+                            Padding="12,5"
+                            Margin="0" />
+                </Grid>
+            </Border>
+
+            <!-- 3. ÁREA PRINCIPAL: MENU LATERAL (16 MÓDULOS) + CONTEÚDO -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="255" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- MENU LATERAL (16 Módulos da Seção 4) -->
+                <Border Grid.Column="0"
+                        Background="{StaticResource SecondaryBackgroundBrush}"
+                        BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="0,0,1,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="MÓDULOS DE DIAGNÓSTICO"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Margin="16,14,16,8" />
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="8,0">
+                            <ItemsControl ItemsSource="{Binding NavigationItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.SelectModuleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding Key}"
+                                                Cursor="Hand"
+                                                Margin="0,2"
+                                                Background="Transparent"
+                                                BorderThickness="0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="NavBd"
+                                                            CornerRadius="8"
+                                                            Padding="11,8"
+                                                            Background="Transparent"
+                                                            BorderThickness="1"
+                                                            BorderBrush="Transparent">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="24" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{Binding IconGlyph}"
+                                                                       Foreground="{StaticResource PrimaryBlueBrush}"
+                                                                       FontSize="14"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Grid.Column="1"
+                                                                       x:Name="NavTitle"
+                                                                       Text="{Binding Title}"
+                                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                                       FontSize="13"
+                                                                       FontWeight="Medium"
+                                                                       VerticalAlignment="Center" />
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter TargetName="NavBd" Property="Background" Value="#1E293B" />
+                                                            <Setter TargetName="NavBd" Property="BorderBrush" Value="{StaticResource PrimaryBlueBrush}" />
+                                                            <Setter TargetName="NavTitle" Property="Foreground" Value="#60A5FA" />
+                                                            <Setter TargetName="NavTitle" Property="FontWeight" Value="Bold" />
+                                                        </DataTrigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="NavBd" Property="Background" Value="#1A2233" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <Border Grid.Row="2"
+                                Background="{StaticResource CardBackgroundBrush}"
+                                CornerRadius="8"
+                                Margin="10"
+                                Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="Modo Ético e Seguro" FontWeight="SemiBold" FontSize="11.5" Foreground="#10B981" />
+                                <TextBlock Text="Não altera HWID, não injeta código e não desativa proteções."
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="10.5"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2,0,0" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- CONTEÚDO DO MÓDULO SELECIONADO -->
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+                    <StackPanel>
+
+                        <!-- CABEÇALHO DO MÓDULO ATUAL -->
+                        <Grid Margin="0,0,0,18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding SelectedModuleTitle}" FontSize="22" FontWeight="Bold" Foreground="White" />
+                                <TextBlock Text="Análise técnica local baseada em WMI, CIM e APIs documentadas do Windows 10 e Windows 11."
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="12.5"
+                                           Margin="0,3,0,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Iniciar diagnóstico completo" Command="{Binding StartFullDiagnosticCommand}" Style="{StaticResource PrimaryActionButtonStyle}" />
+                                <Button Content="Diagnóstico rápido" Command="{Binding StartQuickDiagnosticCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                <Button Content="Exportar relatório" Command="{Binding ExportReportCommand}" Style="{StaticResource SecondaryActionButtonStyle}" Margin="0" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 1: DASHBOARD PRINCIPAL (Seção 5)                                   -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Dashboard}">
+
+                            <!-- Botões de ação rápida exigidos na Seção 5 -->
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Ações Rápidas de Diagnóstico" FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <WrapPanel>
+                                        <Button Content="⚡ Iniciar diagnóstico completo" Command="{Binding StartFullDiagnosticCommand}" Style="{StaticResource PrimaryActionButtonStyle}" />
+                                        <Button Content="⏱ Diagnóstico rápido" Command="{Binding StartQuickDiagnosticCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="🛡 Verificar anticheat" Command="{Binding VerifyAntiCheatCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="★ Verificar Fortnite" Command="{Binding VerifyFortniteCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="⎙ Exportar relatório" Command="{Binding ExportReportCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Indicador de integridade 0 a 100 + Contadores -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="76" Height="76" CornerRadius="38"
+                                                BorderBrush="{Binding HealthScoreColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                BorderThickness="5"
+                                                Margin="0,0,16,0">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding HealthScore}" FontSize="22" FontWeight="ExtraBold" Foreground="White" HorizontalAlignment="Center" />
+                                                <TextBlock Text="/ 100" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Indicador de Integridade Técnica do Computador" FontSize="14.5" FontWeight="Bold" Foreground="White" />
+                                            <TextBlock Text="{Binding CurrentReport.SystemHealthScoreDisclaimer}"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       FontSize="11.5"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Column="1" Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,0">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Problemas Encontrados" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                                        <TextBlock Text="{Binding ProblemsFoundCount}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource StatusErrorRedBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="Falhas locais identificadas" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,0">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Alertas" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                                        <TextBlock Text="{Binding AlertsCount}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource StatusAlertYellowBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="Configurações para análise" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="3" Style="{StaticResource DiagnosticCardStyle}" Margin="0">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Verificações Concluídas" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                                        <TextBlock Text="{Binding CompletedChecksCount}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource StatusNormalGreenBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding LastDiagnosticDate, StringFormat='Último: {0}'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10.5" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Painel com todos os 15 indicadores exigidos na Seção 5 -->
+                            <UniformGrid Columns="3">
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="NOME DO COMPUTADOR" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding ComputerName}" FontSize="14.5" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="VERSÃO DO WINDOWS" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding WindowsVersion}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="MODELO DO PROCESSADOR" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding ProcessorModel}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="QUANTIDADE DE MEMÓRIA RAM" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding RamAmount}" FontSize="14.5" FontWeight="SemiBold" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="MODELO DA PLACA-MÃE" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding MotherboardModel}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="MODELO DA PLACA DE VÍDEO" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding GpuModel}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="QUANTIDADE DE DISCOS" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding DiskCount}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="STATUS DA CONEXÃO" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding ConnectionStatus}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="STATUS DO SECURE BOOT" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding SecureBootStatus}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="STATUS DO TPM 2.0" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding TpmStatus}" FontSize="13.5" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,12,12">
+                                    <StackPanel>
+                                        <TextBlock Text="STATUS DOS COMPONENTES ANTICHEAT" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding AntiCheatComponentsStatus}" FontSize="13" FontWeight="SemiBold" Margin="0,5,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource DiagnosticCardStyle}" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <TextBlock Text="DATA DO ÚLTIMO DIAGNÓSTICO" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding LastDiagnosticDate}" FontSize="14" FontWeight="SemiBold" Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 2: DIAGNÓSTICO COMPLETO                                            -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=DiagnosticoCompleto}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Todas as Verificações Técnicas Realizadas" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,12" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.AllChecks}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,8">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="115" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0"
+                                                                Background="{Binding StatusColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                                CornerRadius="6"
+                                                                Padding="8,4"
+                                                                VerticalAlignment="Top"
+                                                                HorizontalAlignment="Left">
+                                                            <TextBlock Text="{Binding StatusDisplay}" FontSize="11" FontWeight="Bold" Foreground="White" />
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                                            <TextBlock FontSize="14" FontWeight="Bold" Foreground="White">
+                                                                <Run Text="[" /><Run Text="{Binding Category}" /><Run Text="] " /><Run Text="{Binding Name}" />
+                                                            </TextBlock>
+                                                            <TextBlock Text="{Binding CurrentValue}" Foreground="#E5E7EB" FontSize="13" Margin="0,3,0,0" TextWrapping="Wrap" />
+                                                            <TextBlock Text="{Binding Purpose, StringFormat='Finalidade: {0}'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
+                                                            <TextBlock Text="{Binding OfficialRecommendation, StringFormat='Recomendação: {0}'}" Foreground="#60A5FA" FontSize="12" Margin="0,3,0,0" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 3: HARDWARE (Processador e Memória RAM - Seção 6)                  -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Hardware}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Processador (CPU)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4"><Run Text="Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.Manufacturer}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Modelo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.Model}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Arquitetura: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.Architecture}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Frequência: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.FrequencyDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Quantidade de núcleos: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.Cores}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Quantidade de threads: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.Threads}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Temperatura (ACPI/WMI): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.TemperatureDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Status: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Processor.StatusDisplay}" FontWeight="Bold"/></TextBlock>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Memória RAM" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2" Margin="0,0,0,12">
+                                        <TextBlock Margin="0,4"><Run Text="Fabricante(s): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.ManufacturerSummary}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Capacidade Total: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.TotalCapacityDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Frequência Configurada: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.ConfiguredSpeedDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Quantidade de Módulos: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.ModuleCount}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Tipo de Memória: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.MemoryType}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Slots Utilizados: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Ram.UsedSlotsIdentification}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.Hardware.Ram.Modules}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                                    <TextBlock FontSize="12.5">
+                                                        <Run Text="Slot: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Slot}" FontWeight="Bold"/>
+                                                        <Run Text=" | Banco: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding BankLabel}"/>
+                                                        <Run Text=" | Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Manufacturer}"/>
+                                                        <Run Text=" | Capacidade: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CapacityDisplay}"/>
+                                                        <Run Text=" | Frequência: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding SpeedDisplay}"/>
+                                                        <Run Text=" | Tipo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding MemoryType}"/>
+                                                    </TextBlock>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 4: BIOS E PLACA-MÃE (Seção 6)                                      -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=BiosPlacaMae}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Placa-mãe (BaseBoard / SMBIOS)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4"><Run Text="Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.Manufacturer}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Modelo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.Model}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Versão: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.Version}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Número de Série (Parcialmente Mascarado): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.MaskedSerialNumber}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Disponibilidade SMBIOS: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.SmbiosAvailabilityText}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Versão SMBIOS: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Motherboard.SmbiosVersion}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="BIOS / UEFI" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4"><Run Text="Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.Manufacturer}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Versão: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.Version}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Data de Lançamento: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.ReleaseDate}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Modo UEFI ou Legacy: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.BootMode}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Status do Secure Boot: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.SecureBootStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="UUID SMBIOS (Parcialmente Mascarado): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Hardware.Bios.MaskedUuid}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 5: SSD E HDD (Armazenamento - Seção 6)                             -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=SsdHdd}">
+                            <ItemsControl ItemsSource="{Binding CurrentReport.Hardware.StorageDevices}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DiagnosticCardStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Model}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                                <UniformGrid Columns="2">
+                                                    <TextBlock Margin="0,4"><Run Text="Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Manufacturer}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Capacidade Total: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CapacityDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Interface (SATA / NVMe / USB): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding InterfaceType}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Número de Série (Mascarado): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding MaskedSerialNumber}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Saúde do Dispositivo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding HealthStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Status SMART: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding SmartStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Espaço Utilizado: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding UsedSpaceDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Espaço Disponível: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding FreeSpaceDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Temperatura: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding TemperatureDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Volumes: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding VolumesDescription}" FontWeight="SemiBold"/></TextBlock>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 6: PLACA DE VÍDEO (Seção 6)                                        -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=PlacaVideo}">
+                            <ItemsControl ItemsSource="{Binding CurrentReport.Hardware.Gpus}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DiagnosticCardStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Model}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                                <UniformGrid Columns="2">
+                                                    <TextBlock Margin="0,4"><Run Text="Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Manufacturer}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Modelo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Model}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Versão do Driver: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DriverVersion}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Data do Driver: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DriverDate}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Memória Dedicada: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DedicatedMemoryDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Compatibilidade com DirectX: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DirectXCompatibility}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Status do Dispositivo: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DeviceStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,4"><Run Text="Classificação: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding StatusDisplay}" FontWeight="Bold"/></TextBlock>
+                                                </UniformGrid>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 7: REDE E INTERNET (Seção 7)                                       -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=RedeInternet}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Diagnóstico Geral de Conectividade" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4"><Run Text="Status da Conexão: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.ConnectionSummary}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Latência Média: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.LatencyDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Perda de Pacotes: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.PacketLossDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Resolução DNS: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.DnsResolutionStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Serviços Públicos Epic Games: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.EpicConnectivityStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Configuração de Proxy: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.ProxyConfiguration}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Presença de Adaptadores VPN: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.VpnPresenceDescription}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4"><Run Text="Status do Firewall do Windows: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.WindowsFirewallStatus}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+                                    <TextBlock Margin="0,8,0,0"><Run Text="Sincronização de Data e Hora: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Network.TimeSynchronizationStatus}" FontWeight="SemiBold"/></TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Adaptadores de Rede Ativos (Endereços IP e MAC Mascarados)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.Network.ActiveAdapters}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                    <StackPanel>
+                                                        <TextBlock FontSize="14" FontWeight="Bold" Foreground="White">
+                                                            <Run Text="{Binding Name}" /> — <Run Text="{Binding Description}" Foreground="#93C5FD" />
+                                                        </TextBlock>
+                                                        <UniformGrid Columns="3" Margin="0,6,0,0">
+                                                            <TextBlock><Run Text="IP Local (Mascarado): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding MaskedLocalIpAddress}" FontWeight="SemiBold"/></TextBlock>
+                                                            <TextBlock><Run Text="Gateway Padrão: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DefaultGateway}" FontWeight="SemiBold"/></TextBlock>
+                                                            <TextBlock><Run Text="Servidores DNS: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DnsServers}" FontWeight="SemiBold"/></TextBlock>
+                                                            <TextBlock><Run Text="MAC (Mascarado): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding MaskedMacAddress}" FontWeight="SemiBold"/></TextBlock>
+                                                            <TextBlock><Run Text="Status do DHCP: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DhcpStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                            <TextBlock><Run Text="Velocidade Nominal: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding NominalSpeedDisplay}" FontWeight="SemiBold"/></TextBlock>
+                                                        </UniformGrid>
+                                                        <TextBlock Text="{Binding VpnNote}" Foreground="#FBBF24" FontSize="11.5" Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 8: SEGURANÇA DO WINDOWS (Seção 8)                                  -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=SegurancaWindows}">
+                            <ItemsControl ItemsSource="{Binding CurrentReport.Security.SecurityFeatures}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DiagnosticCardStyle}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="115" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0"
+                                                        Background="{Binding StatusColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                        CornerRadius="6"
+                                                        Padding="8,4"
+                                                        VerticalAlignment="Top"
+                                                        HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding StatusDisplay}" FontSize="11" FontWeight="Bold" Foreground="White" />
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="Bold" Foreground="White" />
+                                                    <TextBlock Text="{Binding CurrentState}" FontSize="13.5" Foreground="#E5E7EB" FontWeight="SemiBold" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding PurposeExplanation, StringFormat='Finalidade: {0}'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding OfficialRecommendation, StringFormat='Recomendação oficial: {0}'}" Foreground="#60A5FA" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 9: DRIVERS E SERVIÇOS (Seção 9)                                    -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=DriversServicos}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Dispositivos com Erros no Gerenciador de Dispositivos" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,8" />
+                                    <TextBlock Text="Nota: Um driver desconhecido ou sem assinatura digital não é classificado automaticamente como malware ou trapaça."
+                                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.DriversAndServices.DevicesWithErrors}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                                    <TextBlock TextWrapping="Wrap">
+                                                        <Run Text="{Binding DeviceName}" FontWeight="Bold" Foreground="#F87171"/>
+                                                        <Run Text=" — " />
+                                                        <Run Text="{Binding ErrorExplanation}" />
+                                                    </TextBlock>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Drivers Instalados (Fabricante, Versão, Data e Assinatura Digital)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.DriversAndServices.InstalledDrivers}" MaxHeight="360">
+                                        <ItemsControl.Template>
+                                            <ControlTemplate TargetType="ItemsControl">
+                                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                    <ItemsPresenter />
+                                                </ScrollViewer>
+                                            </ControlTemplate>
+                                        </ItemsControl.Template>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="6" Padding="10" Margin="0,0,0,5">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="95" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Background="{Binding StatusColorHex, Converter={StaticResource HexToBrushConverter}}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding StatusDisplay}" FontSize="10.5" FontWeight="Bold" Foreground="White" />
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" FontSize="12.5" TextWrapping="Wrap">
+                                                            <Run Text="{Binding DeviceName}" FontWeight="Bold" Foreground="White"/>
+                                                            <Run Text=" | Fabricante: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Manufacturer}"/>
+                                                            <Run Text=" | Versão: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding Version}"/>
+                                                            <Run Text=" (" /><Run Text="{Binding DriverDate}"/><Run Text=")" />
+                                                            <Run Text=" | " /><Run Text="{Binding DigitalSignatureDisplay}" Foreground="#93C5FD"/>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Serviços de Terceiros Registrados" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.DriversAndServices.ThirdPartyServices}" MaxHeight="260">
+                                        <ItemsControl.Template>
+                                            <ControlTemplate TargetType="ItemsControl">
+                                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                                    <ItemsPresenter />
+                                                </ScrollViewer>
+                                            </ControlTemplate>
+                                        </ItemsControl.Template>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="6" Padding="8" Margin="0,0,0,4">
+                                                    <TextBlock FontSize="12">
+                                                        <Run Text="{Binding DisplayName}" FontWeight="Bold" Foreground="White"/>
+                                                        <Run Text=" (" /><Run Text="{Binding ServiceName}" Foreground="#93C5FD"/><Run Text=") — Estado: " />
+                                                        <Run Text="{Binding State}" FontWeight="SemiBold"/>
+                                                        <Run Text=" | Inicialização: " /><Run Text="{Binding StartMode}"/>
+                                                    </TextBlock>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 10: ANTICHEAT (Seção 10)                                           -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Anticheat}">
+                            <ItemsControl ItemsSource="{Binding CurrentReport.AntiCheat.AllComponents}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DiagnosticCardStyle}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding ComponentName}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" />
+                                                    <Border Grid.Column="1" Background="{Binding StatusColorHex, Converter={StaticResource HexToBrushConverter}}" CornerRadius="6" Padding="10,3">
+                                                        <TextBlock Text="{Binding StatusDisplay}" FontSize="11.5" FontWeight="Bold" Foreground="White" />
+                                                    </Border>
+                                                </Grid>
+                                                <UniformGrid Columns="2">
+                                                    <TextBlock Margin="0,3"><Run Text="Existência da Instalação: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding InstallationStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,3"><Run Text="Status do Serviço (" Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding RegisteredServiceName}" Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding RegisteredServiceStatus}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,3"><Run Text="Versão Disponível Localmente: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding LocalVersion}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,3"><Run Text="Assinatura Digital: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding ExecutableDigitalSignature}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,3"><Run Text="Falhas de Inicialização: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding StartupFailures}" FontWeight="SemiBold"/></TextBlock>
+                                                    <TextBlock Margin="0,3"><Run Text="Incompatibilidades Documentadas: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding DocumentedIncompatibilities}" FontWeight="SemiBold"/></TextBlock>
+                                                </UniformGrid>
+                                                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"><Run Text="Caminho Local: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding InstallationPath}"/></TextBlock>
+                                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="#60A5FA"><Run Text="Recomendação Oficial: " FontWeight="Bold"/><Run Text="{Binding RepairRecommendation}"/></TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 11: FORTNITE E ANÁLISE DE RESTRIÇÕES DE ACESSO (Seções 11 e 12)    -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Fortnite}">
+
+                            <!-- Diagnóstico da Instalação do Fortnite -->
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Diagnóstico Local da Instalação do Fortnite" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Localização da Instalação: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.InstallLocation}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Arquivos Principais: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.MainFilesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Status do Epic Games Launcher: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.EpicGamesLauncherStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Requisitos Mínimos do Sistema: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.MinimumRequirementsStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Compatibilidade da GPU: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.GpuCompatibilityStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Versão do DirectX: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.DirectXVersion}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Espaço Disponível: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.AvailableSpaceStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Dependências Visual C++: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.VisualCppDependenciesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Status Conectividade: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.ConnectivityIssuesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Status Público Epic Games: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.Fortnite.EpicPublicServicesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Atalhos Oficiais (Seção 11) -->
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Atalhos Oficiais de Verificação e Suporte" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CurrentReport.Fortnite.OfficialShortcuts}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Content="{Binding Title}"
+                                                        Command="{Binding DataContext.OpenOfficialUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding UrlOrUri}"
+                                                        ToolTip="{Binding Description}"
+                                                        Style="{StaticResource SecondaryActionButtonStyle}"
+                                                        Margin="0,0,10,8" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Interpretador Manual de Mensagens de Erro do Fortnite (Seção 11) -->
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Interpretador de Mensagens de Erro Recebidas Durante as Partidas" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,6" />
+                                    <TextBlock Text="Insira manualmente a mensagem ou código de erro exibido pelo Fortnite, Easy Anti-Cheat ou BattlEye:"
+                                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" Margin="0,0,0,8" />
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0"
+                                                 Text="{Binding ManualFortniteErrorInput, UpdateSourceTrigger=PropertyChanged}"
+                                                 Style="{StaticResource DarkTextBoxStyle}"
+                                                 Margin="0,0,10,0" />
+                                        <Button Grid.Column="1"
+                                                Content="Interpretar Mensagem de Erro"
+                                                Command="{Binding InterpretFortniteErrorCommand}"
+                                                Style="{StaticResource PrimaryActionButtonStyle}"
+                                                Margin="0" />
+                                    </Grid>
+
+                                    <Border Background="#111827" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                        <StackPanel>
+                                            <TextBlock FontSize="14" FontWeight="Bold" Foreground="White">
+                                                <Run Text="Padrão Identificado: " Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Run Text="{Binding CurrentErrorInterpretation.IdentifiedCodeOrPattern}" Foreground="#60A5FA"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding CurrentErrorInterpretation.InterpretationSummary}" Foreground="#E5E7EB" FontSize="13" Margin="0,6,0,6" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding CurrentErrorInterpretation.ConclusivenessNotice}" Foreground="#FBBF24" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- SEÇÃO 12: ANÁLISE DE RESTRIÇÕES DE ACESSO -->
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Análise de restrições de acesso" FontSize="17" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,6" />
+                                    <TextBlock Text="Informe os sintomas observados para correlacionar com as verificações técnicas locais:"
+                                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" Margin="0,0,0,12" />
+
+                                    <UniformGrid Columns="2" Margin="0,0,0,10">
+                                        <StackPanel Margin="0,0,14,10">
+                                            <TextBlock Text="Duração da punição recebida:" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding PunishmentDurationOptions}"
+                                                      SelectedItem="{Binding RestrictionDuration}"
+                                                      Padding="8,6" />
+                                        </StackPanel>
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock Text="Mensagem apresentada pelo Fortnite:" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding RestrictionMessage, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource DarkTextBoxStyle}" />
+                                        </StackPanel>
+                                    </UniformGrid>
+
+                                    <UniformGrid Columns="2" Margin="0,0,0,12">
+                                        <CheckBox Content="Consegue acessar o lobby normalmente" IsChecked="{Binding RestrictionCanAccessLobby}" />
+                                        <CheckBox Content="Ocorre expulsão durante a partida (ex: ao entrar/pular do ônibus)" IsChecked="{Binding RestrictionKickedDuringMatch}" />
+                                        <CheckBox Content="O Windows já foi reinstalado recentemente" IsChecked="{Binding RestrictionWindowsReinstalled}" />
+                                        <CheckBox Content="Utiliza VPN, Proxy ou redutor de ping" IsChecked="{Binding RestrictionUsesVpnOrProxy}" />
+                                        <CheckBox Content="O computador ou peças foram adquiridos de terceiros (usados)" IsChecked="{Binding RestrictionPurchasedThirdParty}" />
+                                        <CheckBox Content="Existe uma sanção confirmada no Portal de Sanções da Epic Games" IsChecked="{Binding RestrictionConfirmedInEpicPortal}" />
+                                    </UniformGrid>
+
+                                    <Button Content="Analisar Restrições de Acesso"
+                                            Command="{Binding AnalyzeAccessRestrictionsCommand}"
+                                            Style="{StaticResource PrimaryActionButtonStyle}"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,0,0,14" />
+
+                                    <Border Background="#111827" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                <Border Background="{Binding CurrentRestrictionResult.StatusColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                        CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
+                                                    <TextBlock Text="{Binding CurrentRestrictionResult.StatusDisplay}" FontWeight="Bold" FontSize="11.5" Foreground="White" />
+                                                </Border>
+                                                <TextBlock Text="{Binding CurrentRestrictionResult.OutcomeTitle}" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding CurrentRestrictionResult.DetailedExplanation}" Foreground="#E5E7EB" FontSize="13" TextWrapping="Wrap" Margin="0,0,0,10" />
+                                            <TextBlock Text="{Binding CurrentRestrictionResult.MandatoryDisclaimer}" Foreground="#FBBF24" FontSize="11.5" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 12: INTEGRIDADE DO SISTEMA (Seção 13)                              -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=IntegridadeSistema}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Verificações Oficiais de Integridade do Windows (SFC e DISM)" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" />
+                                            <TextBlock Text="Qualquer reparação é estritamente separada do diagnóstico e exige confirmação explícita do usuário."
+                                                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1"
+                                                Content="Executar SFC /verifyonly e DISM /CheckHealth"
+                                                Command="{Binding RunReadOnlyIntegrityVerificationCommand}"
+                                                Style="{StaticResource PrimaryActionButtonStyle}"
+                                                Margin="0" />
+                                    </Grid>
+
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Integridade dos Arquivos do Sistema: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.SystemFilesIntegrityStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Componentes do Windows (CBS): " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.WindowsComponentCorruptionStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Erros de Armazenamento: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.StorageErrorsStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Falhas de Atualização: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.UpdateFailuresStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Dependências Ausentes: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.MissingDependenciesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Erros Críticos do Sistema: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.CriticalSystemErrorsStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Eventos Relacionados a Drivers: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.DriverRelatedEventsStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Problemas de Inicialização: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.BootIssuesStatus}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Resumo SFC /verifyonly: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.SfcVerifySummary}" FontWeight="SemiBold"/></TextBlock>
+                                        <TextBlock Margin="0,4" TextWrapping="Wrap"><Run Text="Resumo DISM /CheckHealth: " Foreground="{StaticResource TextSecondaryBrush}"/><Run Text="{Binding CurrentReport.SystemIntegrity.DismCheckHealthSummary}" FontWeight="SemiBold"/></TextBlock>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 13: LOGS E EVENTOS                                                 -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=LogsEventos}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Eventos Relevantes do Windows e Registros Locais do Diagnóstico" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,10" />
+                                    <ItemsControl ItemsSource="{Binding CombinedEventLogs}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#111827" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                                    <StackPanel>
+                                                        <TextBlock FontSize="12.5" FontWeight="Bold">
+                                                            <Run Text="[" /><Run Text="{Binding TimestampDisplay}" Foreground="#93C5FD"/><Run Text="] [" />
+                                                            <Run Text="{Binding Severity}" Foreground="#FBBF24"/><Run Text="] " />
+                                                            <Run Text="{Binding Category}" /> — <Run Text="{Binding Source}" /> (ID <Run Text="{Binding EventId}" />)
+                                                        </TextBlock>
+                                                        <TextBlock Text="{Binding Message}" Foreground="#E5E7EB" FontSize="12" Margin="0,3,0,0" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 14: RELATÓRIOS (Seção 16)                                          -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Relatorios}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Exportação de Relatórios Técnicos com Mascaramento Automático" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,6" />
+                                    <TextBlock Text="Endereços IP, MAC, números de série, UUID, nomes de usuário em caminhos, tokens e credenciais são mascarados automaticamente em todos os formatos."
+                                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" Margin="0,0,0,12" />
+
+                                    <WrapPanel Margin="0,0,0,12">
+                                        <Button Content="Exportar PDF (.pdf)" Command="{Binding ExportPdfCommand}" Style="{StaticResource PrimaryActionButtonStyle}" />
+                                        <Button Content="Exportar HTML (.html)" Command="{Binding ExportHtmlCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="Exportar JSON (.json)" Command="{Binding ExportJsonCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="Exportar TXT (.txt)" Command="{Binding ExportTxtCommand}" Style="{StaticResource SecondaryActionButtonStyle}" />
+                                        <Button Content="📋 Copiar Relatório Resumido para Suporte Técnico" Command="{Binding CopySupportSummaryCommand}" Style="{StaticResource PrimaryActionButtonStyle}" Margin="0" />
+                                    </WrapPanel>
+
+                                    <TextBlock Margin="0,0,0,10" FontSize="12.5">
+                                        <Run Text="Último arquivo exportado: " Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <Run Text="{Binding LastExportedFilePath}" Foreground="#60A5FA" FontWeight="SemiBold"/>
+                                    </TextBlock>
+
+                                    <TextBox Text="{Binding ReportPreviewText, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             Height="360"
+                                             FontFamily="Consolas"
+                                             FontSize="12"
+                                             VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Auto"
+                                             TextWrapping="Wrap"
+                                             Style="{StaticResource DarkTextBoxStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 15: CENTRAL DE SOLUÇÕES (Seção 14)                                 -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=CentralSolucoes}">
+                            <ItemsControl ItemsSource="{Binding CurrentReport.RecommendedSolutions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource DiagnosticCardStyle}">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,6">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding ProblemName}" FontSize="16" FontWeight="Bold" Foreground="White" />
+                                                    <Border Grid.Column="1" Background="{Binding PriorityColorHex, Converter={StaticResource HexToBrushConverter}}" CornerRadius="6" Padding="10,3">
+                                                        <TextBlock Text="{Binding PriorityLevel, StringFormat='Prioridade: {0}'}" FontSize="11.5" FontWeight="Bold" Foreground="White" />
+                                                    </Border>
+                                                </Grid>
+                                                <TextBlock Text="{Binding Description}" Foreground="#E5E7EB" FontSize="13" TextWrapping="Wrap" Margin="0,2,0,4" />
+                                                <TextBlock Text="{Binding PossibleCause, StringFormat='Possível causa: {0}'}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12.5" TextWrapping="Wrap" Margin="0,2,0,6" />
+                                                <Border Background="#111827" CornerRadius="6" Padding="12" Margin="0,0,0,6">
+                                                    <TextBlock Text="{Binding RecommendedProcedure}" Foreground="#93C5FD" FontSize="12.5" TextWrapping="Wrap" />
+                                                </Border>
+                                                <TextBlock Text="{Binding InvolvedRisks, StringFormat='Riscos envolvidos: {0}'}" Foreground="#FBBF24" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                                <Button Content="Abrir Documentação Oficial"
+                                                        Command="{Binding DataContext.OpenOfficialUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding OfficialDocumentationUrl}"
+                                                        Style="{StaticResource SecondaryActionButtonStyle}"
+                                                        HorizontalAlignment="Left" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <!-- ========================================================================= -->
+                        <!-- MÓDULO 16: CONFIGURAÇÕES                                                  -->
+                        <!-- ========================================================================= -->
+                        <StackPanel Visibility="{Binding SelectedModuleKey, Converter={StaticResource ModuleVisibilityConverter}, ConverterParameter=Configuracoes}">
+                            <Border Style="{StaticResource DiagnosticCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Preferências Locais, Privacidade e Exportação" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBlueBrush}" Margin="0,0,0,12" />
+                                    <CheckBox Content="Mascarar números de série, UUID, IP e MAC automaticamente na interface gráfica"
+                                              IsChecked="{Binding Settings.MaskSensitiveIdentifiersInUi}" />
+                                    <CheckBox Content="Mascarar obrigatoriamente informações pessoais e credenciais nos relatórios exportados"
+                                              IsChecked="{Binding Settings.AlwaysMaskReports}" />
+                                    <CheckBox Content="Consultar status público dos servidores da Epic Games via HTTPS (somente leitura)"
+                                              IsChecked="{Binding Settings.EnableOnlineEpicStatusCheck}" />
+                                    <CheckBox Content="Salvar histórico do último diagnóstico localmente em JSON (%LocalAppData%\HWIDDiagnosticPro)"
+                                              IsChecked="{Binding Settings.SaveLocalDiagnosticHistory}" />
+
+                                    <Grid Margin="0,12,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="260" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,14,0">
+                                            <TextBlock Text="Formato Padrão de Relatório:" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding ReportFormatOptions}"
+                                                      SelectedItem="{Binding Settings.DefaultReportFormat}"
+                                                      Padding="8,6" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Diretório de Exportação dos Relatórios:" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding Settings.ReportsOutputDirectory, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource DarkTextBoxStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Button Content="Salvar Configurações"
+                                            Command="{Binding SaveSettingsCommand}"
+                                            Style="{StaticResource PrimaryActionButtonStyle}"
+                                            HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- 4. BARRA DE RODAPÉ -->
+            <Border Grid.Row="3"
+                    Background="{StaticResource SecondaryBackgroundBrush}"
+                    BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="16,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="Ferramenta legítima de diagnóstico técnico • Nenhuma alteração de HWID ou interferência em processos de jogos é realizada."
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="11.5"
+                               VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Windows 10 / Windows 11 (x64) • .NET 10 LTS • WPF MVVM"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="11.5"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>
